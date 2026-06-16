@@ -1,0 +1,5 @@
+notepad .gitignore
+/uploads/
+vendor/
+*.log
+.env
