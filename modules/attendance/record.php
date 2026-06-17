@@ -19,42 +19,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $date       = $_POST['date'];
     $subject    = trim($_POST['subject']);
     $class      = trim($_POST['class']);
+    $teacher_id = isset($_POST['teacher_id']) ? (int)$_POST['teacher_id'] : 0;
+    $status     = isset($_POST['status']) ? trim($_POST['status']) : '';
     $recorded_by = $_SESSION['user_id'];
 
-    if (empty($date) || empty($subject) || empty($class)) {
+    if (empty($date) || empty($subject) || empty($class) || $teacher_id <= 0 || !in_array($status, ['present', 'absent'], true)) {
         $error = "Please fill in all fields.";
-    } elseif (!isset($_POST['attendance']) || empty($_POST['attendance'])) {
-        $error = "Please record attendance for at least one teacher.";
     } else {
-        $all_ok = true;
+        // Prevent duplicate entry for the same class + subject + date lesson.
+        $check = mysqli_prepare($conn, "SELECT attendance_id FROM attendance WHERE date=? AND subject=? AND class=?");
+        mysqli_stmt_bind_param($check, "sss", $date, $subject, $class);
+        mysqli_stmt_execute($check);
+        mysqli_stmt_store_result($check);
 
-        foreach ($_POST['attendance'] as $teacher_id => $status) {
-            $teacher_id = (int)$teacher_id;
-
-            // Check if attendance already recorded for this teacher today
-            $check = mysqli_prepare($conn, "SELECT attendance_id FROM attendance WHERE teacher_id=? AND date=? AND subject=? AND class=?");
-            mysqli_stmt_bind_param($check, "isss", $teacher_id, $date, $subject, $class);
-            mysqli_stmt_execute($check);
-            mysqli_stmt_store_result($check);
-
-            if (mysqli_stmt_num_rows($check) > 0) {
-                $error = "Attendance already recorded for this lesson. Please check your entries.";
-                $all_ok = false;
-                break;
-            }
-
+        if (mysqli_stmt_num_rows($check) > 0) {
+            $error = "Attendance for this class and subject has already been recorded for the selected date.";
+        } else {
             $stmt = mysqli_prepare($conn, "INSERT INTO attendance (teacher_id, recorded_by, date, subject, class, status) VALUES (?, ?, ?, ?, ?, ?)");
             mysqli_stmt_bind_param($stmt, "iissss", $teacher_id, $recorded_by, $date, $subject, $class, $status);
 
-            if (!mysqli_stmt_execute($stmt)) {
-                $all_ok = false;
+            if (mysqli_stmt_execute($stmt)) {
+                $success = "Attendance recorded successfully.";
+            } else {
                 $error  = "An error occurred while saving. Please try again.";
-                break;
             }
-        }
-
-        if ($all_ok && empty($error)) {
-            $success = "Attendance recorded successfully for " . count($_POST['attendance']) . " teacher(s).";
         }
     }
 
@@ -67,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="page-header">
     <h1>Record Teacher Lesson Attendance</h1>
-    <p>Complete all fields then mark each teacher present or absent</p>
+    <p>Record attendance for one teacher per lesson</p>
 </div>
 
 <div class="card">
@@ -127,40 +115,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </select>
             </div>
 
-            <!-- Teacher Attendance Table -->
-            <div style="margin-top:20px;margin-bottom:16px">
-                <label class="form-label">Teacher Attendance *</label>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Teacher Name</th>
-                            <th style="text-align:center">Present</th>
-                            <th style="text-align:center">Absent</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php $i = 1; while ($teacher = mysqli_fetch_assoc($teachers)): ?>
-                        <tr>
-                            <td><?php echo $i++; ?></td>
-                            <td><strong><?php echo htmlspecialchars($teacher['name']); ?></strong></td>
-                            <td style="text-align:center">
-                                <input type="radio"
-                                    name="attendance[<?php echo $teacher['user_id']; ?>]"
-                                    value="present"
-                                    <?php echo (isset($_POST['attendance'][$teacher['user_id']]) && $_POST['attendance'][$teacher['user_id']] === 'present') ? 'checked' : 'checked'; ?>
-                                    required>
-                            </td>
-                            <td style="text-align:center">
-                                <input type="radio"
-                                    name="attendance[<?php echo $teacher['user_id']; ?>]"
-                                    value="absent"
-                                    <?php echo (isset($_POST['attendance'][$teacher['user_id']]) && $_POST['attendance'][$teacher['user_id']] === 'absent') ? 'checked' : ''; ?>>
-                            </td>
-                        </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+            <div class="form-group-block" style="margin-top:20px">
+                <label class="form-label">Teacher *</label>
+                <select name="teacher_id" class="form-control" required>
+                    <option value="">-- Select Teacher --</option>
+                    <?php while ($teacher = mysqli_fetch_assoc($teachers)): ?>
+                    <option value="<?php echo (int)$teacher['user_id']; ?>" <?php echo (isset($_POST['teacher_id']) && (int)$_POST['teacher_id'] === (int)$teacher['user_id']) ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($teacher['name']); ?>
+                    </option>
+                    <?php endwhile; ?>
+                </select>
+            </div>
+
+            <div class="form-group-block" style="margin-top:16px;margin-bottom:16px">
+                <label class="form-label">Attendance Status *</label>
+                <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+                    <label style="display:flex;align-items:center;gap:6px;margin:0">
+                        <input type="radio" name="status" value="present" <?php echo (!isset($_POST['status']) || $_POST['status'] === 'present') ? 'checked' : ''; ?> required>
+                        Present
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;margin:0">
+                        <input type="radio" name="status" value="absent" <?php echo (isset($_POST['status']) && $_POST['status'] === 'absent') ? 'checked' : ''; ?>>
+                        Absent
+                    </label>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary">Submit Attendance</button>
