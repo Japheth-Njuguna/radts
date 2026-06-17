@@ -58,6 +58,7 @@ $recent = mysqli_query($conn, "SELECT a.attendance_id, a.teacher_id, a.recorded_
                     <th>Class</th>
                     <th>Date</th>
                     <th>Status</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -68,10 +69,13 @@ $recent = mysqli_query($conn, "SELECT a.attendance_id, a.teacher_id, a.recorded_
                     <td><?php echo htmlspecialchars($rec['lesson_class']); ?></td>
                     <td><?php echo date('d M Y', strtotime($rec['lesson_date'])); ?></td>
                     <td><span class="badge badge-<?php echo htmlspecialchars($rec['lesson_status']); ?>"><?php echo ucfirst(htmlspecialchars($rec['lesson_status'])); ?></span></td>
+                    <td>
+                        <a href="/radts/modules/attendance/edit.php?attendance_id=<?php echo (int)$rec['attendance_id']; ?>" class="btn btn-warning btn-sm">Edit</a>
+                    </td>
                 </tr>
                 <?php endwhile; ?>
                 <?php if ($total_recorded == 0): ?>
-                <tr><td colspan="5" style="text-align:center;color:#6B7280;padding:20px">No attendance records submitted yet.</td></tr>
+                <tr><td colspan="6" style="text-align:center;color:#6B7280;padding:20px">No attendance records submitted yet.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

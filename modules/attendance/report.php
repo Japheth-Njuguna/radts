@@ -124,12 +124,13 @@ $absent_total  = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as tota
                     <th>Date</th>
                     <th>Status</th>
                     <th>Recorded By</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($total === 0): ?>
                 <tr>
-                    <td colspan="7" style="text-align:center;color:#6B7280;padding:30px">
+                    <td colspan="8" style="text-align:center;color:#6B7280;padding:30px">
                         No attendance records found for this period.
                     </td>
                 </tr>
@@ -143,6 +144,9 @@ $absent_total  = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as tota
                     <td><?php echo date('d M Y', strtotime($rec['lesson_date'])); ?></td>
                     <td><span class="badge badge-<?php echo htmlspecialchars($rec['lesson_status']); ?>"><?php echo ucfirst(htmlspecialchars($rec['lesson_status'])); ?></span></td>
                     <td><?php echo htmlspecialchars($rec['recorder_name']); ?></td>
+                    <td>
+                        <a href="/radts/modules/attendance/edit.php?attendance_id=<?php echo (int)$rec['attendance_id']; ?>" class="btn btn-warning btn-sm">Edit</a>
+                    </td>
                 </tr>
                 <?php endwhile; ?>
                 <?php endif; ?>
