@@ -8,6 +8,9 @@ if (!hasRole('deputy') && !hasRole('admin')) {
     exit();
 }
 
+// Ensure return-date tracking exists for reports.
+mysqli_query($conn, "ALTER TABLE resource_allocation ADD COLUMN IF NOT EXISTS date_returned DATE NULL AFTER date_confirmed");
+
 // Filters
 $status  = isset($_GET['status']) ? $_GET['status'] : '';
 $teacher = isset($_GET['teacher_id']) ? (int)$_GET['teacher_id'] : 0;
@@ -23,6 +26,7 @@ $sql = "SELECT
         ra.date_allocated,
         ra.status AS status,
         ra.date_confirmed,
+        ra.date_returned,
         u.name AS teacher_name,
         r.name AS resource_name,
         r.type AS resource_type,
@@ -123,13 +127,14 @@ $total_confirmed = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as to
                     <th>Date Issued</th>
                     <th>Status</th>
                     <th>Date Confirmed</th>
+                    <th>Date Returned</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($total === 0): ?>
                 <tr>
-                    <td colspan="8" style="text-align:center;color:#6B7280;padding:30px">
+                    <td colspan="9" style="text-align:center;color:#6B7280;padding:30px">
                         No allocation records found.
                     </td>
                 </tr>
@@ -145,6 +150,9 @@ $total_confirmed = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as to
                     <td><span class="badge badge-<?php echo htmlspecialchars($allocStatus); ?>"><?php echo ucfirst(htmlspecialchars($allocStatus)); ?></span></td>
                     <td>
                         <?php echo $alloc['date_confirmed'] ? date('d M Y', strtotime($alloc['date_confirmed'])) : '—'; ?>
+                    </td>
+                    <td>
+                        <?php echo $alloc['date_returned'] ? date('d M Y', strtotime($alloc['date_returned'])) : '—'; ?>
                     </td>
                     <td>
                         <a href="/radts/modules/resources/edit_allocation.php?id=<?php echo (int)$alloc['allocation_id']; ?>" class="btn btn-warning btn-sm">Edit</a>

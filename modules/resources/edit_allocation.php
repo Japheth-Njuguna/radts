@@ -8,6 +8,9 @@ if (!hasRole('deputy') && !hasRole('admin')) {
     exit();
 }
 
+// Ensure return-date tracking exists for edits.
+mysqli_query($conn, "ALTER TABLE resource_allocation ADD COLUMN IF NOT EXISTS date_returned DATE NULL AFTER date_confirmed");
+
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = isset($_POST['id']) ? (int)$_POST['id'] : $id;
@@ -23,7 +26,7 @@ $error = '';
 
 $load_stmt = mysqli_prepare(
     $conn,
-    'SELECT allocation_id, resource_id, teacher_id, quantity, date_allocated, status, date_confirmed
+    'SELECT allocation_id, resource_id, teacher_id, quantity, date_allocated, status, date_confirmed, date_returned
      FROM resource_allocation
      WHERE allocation_id = ?'
 );
@@ -44,6 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_date_allocated = isset($_POST['date_allocated']) ? $_POST['date_allocated'] : '';
     $new_status = isset($_POST['status']) ? trim($_POST['status']) : '';
     $new_date_confirmed = isset($_POST['date_confirmed']) ? $_POST['date_confirmed'] : '';
+    $new_date_returned = isset($_POST['date_returned']) ? $_POST['date_returned'] : '';
 
     if ($new_resource_id <= 0 || $new_teacher_id <= 0 || $new_quantity <= 0 || $new_date_allocated === '' || !in_array($new_status, ['pending', 'confirmed'], true)) {
         $error = 'Please fill in all fields correctly.';
@@ -101,21 +105,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $final_date_confirmed = $new_date_confirmed !== '' ? $new_date_confirmed : date('Y-m-d');
             }
 
+            $final_date_returned = $new_date_returned !== '' ? $new_date_returned : null;
+
             $update_stmt = mysqli_prepare(
                 $conn,
                 'UPDATE resource_allocation
-                 SET resource_id = ?, teacher_id = ?, quantity = ?, date_allocated = ?, status = ?, date_confirmed = ?
+                 SET resource_id = ?, teacher_id = ?, quantity = ?, date_allocated = ?, status = ?, date_confirmed = ?, date_returned = ?
                  WHERE allocation_id = ?'
             );
             mysqli_stmt_bind_param(
                 $update_stmt,
-                'iiisssi',
+                'iiissssi',
                 $new_resource_id,
                 $new_teacher_id,
                 $new_quantity,
                 $new_date_allocated,
                 $new_status,
                 $final_date_confirmed,
+                $final_date_returned,
                 $id
             );
             mysqli_stmt_execute($update_stmt);
@@ -131,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $reload_stmt = mysqli_prepare(
         $conn,
-        'SELECT allocation_id, resource_id, teacher_id, quantity, date_allocated, status, date_confirmed
+        'SELECT allocation_id, resource_id, teacher_id, quantity, date_allocated, status, date_confirmed, date_returned
          FROM resource_allocation
          WHERE allocation_id = ?'
     );
@@ -226,6 +233,12 @@ $teachers = mysqli_query($conn, "SELECT user_id, name FROM users WHERE role='tea
                     <label class="form-label">Date Confirmed (Optional)</label>
                     <input type="date" name="date_confirmed" class="form-control"
                         value="<?php echo $allocation['date_confirmed'] ? htmlspecialchars($allocation['date_confirmed']) : ''; ?>"
+                        max="<?php echo date('Y-m-d'); ?>">
+                </div>
+                <div class="form-group-block">
+                    <label class="form-label">Date Returned (Optional)</label>
+                    <input type="date" name="date_returned" class="form-control"
+                        value="<?php echo $allocation['date_returned'] ? htmlspecialchars($allocation['date_returned']) : ''; ?>"
                         max="<?php echo date('Y-m-d'); ?>">
                 </div>
             </div>
