@@ -17,17 +17,26 @@ $teacher  = isset($_GET['teacher_id']) ? (int)$_GET['teacher_id'] : 0;
 $all_teachers = mysqli_query($conn, "SELECT user_id, name FROM users WHERE role='teacher' ORDER BY name");
 
 // Build query
-$sql = "SELECT a.*, u.name as teacher_name, r.name as recorder_name
+$sql = "SELECT
+        a.attendance_id,
+        a.teacher_id,
+        a.recorded_by,
+        a.`subject` AS lesson_subject,
+        a.`class` AS lesson_class,
+        a.`date` AS lesson_date,
+        a.`status` AS lesson_status,
+        u.name AS teacher_name,
+        r.name AS recorder_name
         FROM attendance a
         JOIN users u ON a.teacher_id = u.user_id
         JOIN users r ON a.recorded_by = r.user_id
-        WHERE a.date BETWEEN '$from' AND '$to'";
+    WHERE a.`date` BETWEEN '$from' AND '$to'";
 
 if ($teacher > 0) {
     $sql .= " AND a.teacher_id = $teacher";
 }
 
-$sql .= " ORDER BY a.date DESC, u.name ASC";
+$sql .= " ORDER BY a.`date` DESC, u.name ASC";
 $records = mysqli_query($conn, $sql);
 $total   = mysqli_num_rows($records);
 
@@ -129,10 +138,10 @@ $absent_total  = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as tota
                 <tr>
                     <td><?php echo $i++; ?></td>
                     <td><strong><?php echo htmlspecialchars($rec['teacher_name']); ?></strong></td>
-                    <td><?php echo htmlspecialchars($rec['subject']); ?></td>
-                    <td><?php echo htmlspecialchars($rec['class']); ?></td>
-                    <td><?php echo date('d M Y', strtotime($rec['date'])); ?></td>
-                    <td><span class="badge badge-<?php echo $rec['status']; ?>"><?php echo ucfirst($rec['status']); ?></span></td>
+                    <td><?php echo htmlspecialchars($rec['lesson_subject']); ?></td>
+                    <td><?php echo htmlspecialchars($rec['lesson_class']); ?></td>
+                    <td><?php echo date('d M Y', strtotime($rec['lesson_date'])); ?></td>
+                    <td><span class="badge badge-<?php echo htmlspecialchars($rec['lesson_status']); ?>"><?php echo ucfirst(htmlspecialchars($rec['lesson_status'])); ?></span></td>
                     <td><?php echo htmlspecialchars($rec['recorder_name']); ?></td>
                 </tr>
                 <?php endwhile; ?>

@@ -85,9 +85,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <select name="resource_id" class="form-control" required>
                     <option value="">-- Select Resource --</option>
                     <?php while ($res = mysqli_fetch_assoc($resources)): ?>
+                    <?php
+                        $resourceName = $res['NAME'] ?? ($res['name'] ?? ($res['resource_name'] ?? 'Unnamed Resource'));
+                        $availableQty = $res['quantity_available'] ?? 0;
+                    ?>
                     <option value="<?php echo $res['resource_id']; ?>"
                         <?php echo ($preselect_resource == $res['resource_id'] || (isset($_POST['resource_id']) && $_POST['resource_id'] == $res['resource_id'])) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($res['name']); ?> (<?php echo $res['quantity_available']; ?> available)
+                        <?php echo htmlspecialchars($resourceName); ?> (<?php echo (int)$availableQty; ?> available)
                     </option>
                     <?php endwhile; ?>
                 </select>

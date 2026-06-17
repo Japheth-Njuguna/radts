@@ -14,7 +14,19 @@ $teacher = isset($_GET['teacher_id']) ? (int)$_GET['teacher_id'] : 0;
 
 $all_teachers = mysqli_query($conn, "SELECT user_id, name FROM users WHERE role='teacher' ORDER BY name");
 
-$sql = "SELECT ra.*, u.name as teacher_name, r.name as resource_name, r.type, d.name as deputy_name
+$sql = "SELECT
+        ra.allocation_id,
+        ra.resource_id,
+        ra.teacher_id,
+        ra.allocated_by,
+        ra.quantity,
+        ra.date_allocated,
+        ra.status AS status,
+        ra.date_confirmed,
+        u.name AS teacher_name,
+        r.name AS resource_name,
+        r.type AS resource_type,
+        d.name AS deputy_name
         FROM resource_allocation ra
         JOIN users u ON ra.teacher_id = u.user_id
         JOIN resources r ON ra.resource_id = r.resource_id
@@ -122,13 +134,14 @@ $total_confirmed = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as to
                 </tr>
                 <?php else: ?>
                 <?php $i = 1; while ($alloc = mysqli_fetch_assoc($allocations)): ?>
+                <?php $allocStatus = $alloc['status'] ?? ($alloc['STATUS'] ?? 'pending'); ?>
                 <tr>
                     <td><?php echo $i++; ?></td>
                     <td><strong><?php echo htmlspecialchars($alloc['resource_name']); ?></strong></td>
                     <td><?php echo htmlspecialchars($alloc['teacher_name']); ?></td>
                     <td><?php echo $alloc['quantity']; ?></td>
                     <td><?php echo date('d M Y', strtotime($alloc['date_allocated'])); ?></td>
-                    <td><span class="badge badge-<?php echo $alloc['status']; ?>"><?php echo ucfirst($alloc['status']); ?></span></td>
+                    <td><span class="badge badge-<?php echo htmlspecialchars($allocStatus); ?>"><?php echo ucfirst(htmlspecialchars($allocStatus)); ?></span></td>
                     <td>
                         <?php echo $alloc['date_confirmed'] ? date('d M Y', strtotime($alloc['date_confirmed'])) : '—'; ?>
                     </td>

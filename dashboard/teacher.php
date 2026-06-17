@@ -16,7 +16,7 @@ $absent_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total
 $pending_resources = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM resource_allocation WHERE teacher_id=$user_id AND status='pending'"))['total'];
 
 // My recent attendance
-$my_attendance = mysqli_query($conn, "SELECT * FROM attendance WHERE teacher_id=$user_id ORDER BY date DESC LIMIT 7");
+$my_attendance = mysqli_query($conn, "SELECT `date` AS lesson_date, `subject` AS lesson_subject, `class` AS lesson_class, `status` AS lesson_status FROM attendance WHERE teacher_id=$user_id ORDER BY `date` DESC LIMIT 7");
 
 // My pending resources
 $my_resources = mysqli_query($conn, "SELECT ra.*, r.name as resource_name FROM resource_allocation ra JOIN resources r ON ra.resource_id = r.resource_id WHERE ra.teacher_id=$user_id AND ra.status='pending' ORDER BY ra.date_allocated DESC");
@@ -101,10 +101,10 @@ $my_resources = mysqli_query($conn, "SELECT ra.*, r.name as resource_name FROM r
             <tbody>
                 <?php while ($att = mysqli_fetch_assoc($my_attendance)): ?>
                 <tr>
-                    <td><?php echo date('d M Y', strtotime($att['date'])); ?></td>
-                    <td><?php echo htmlspecialchars($att['subject']); ?></td>
-                    <td><?php echo htmlspecialchars($att['class']); ?></td>
-                    <td><span class="badge badge-<?php echo $att['status']; ?>"><?php echo ucfirst($att['status']); ?></span></td>
+                    <td><?php echo date('d M Y', strtotime($att['lesson_date'])); ?></td>
+                    <td><?php echo htmlspecialchars($att['lesson_subject']); ?></td>
+                    <td><?php echo htmlspecialchars($att['lesson_class']); ?></td>
+                    <td><span class="badge badge-<?php echo htmlspecialchars($att['lesson_status']); ?>"><?php echo ucfirst(htmlspecialchars($att['lesson_status'])); ?></span></td>
                 </tr>
                 <?php endwhile; ?>
                 <?php if ($present_count == 0 && $absent_count == 0): ?>

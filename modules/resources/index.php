@@ -60,10 +60,14 @@ while ($row = mysqli_fetch_assoc($summary)) {
                 </tr>
                 <?php else: ?>
                 <?php $i = 1; while ($res = mysqli_fetch_assoc($resources)): ?>
+                <?php
+                    $resourceName = $res['NAME'] ?? ($res['name'] ?? 'Unnamed Resource');
+                    $resourceType = $res['TYPE'] ?? ($res['type'] ?? 'Unknown');
+                ?>
                 <tr>
                     <td><?php echo $i++; ?></td>
-                    <td><strong><?php echo htmlspecialchars($res['name']); ?></strong></td>
-                    <td><?php echo htmlspecialchars($res['type']); ?></td>
+                    <td><strong><?php echo htmlspecialchars($resourceName); ?></strong></td>
+                    <td><?php echo htmlspecialchars($resourceType); ?></td>
                     <td>
                         <span style="color:<?php echo $res['quantity_available'] < 5 ? '#DC2626' : '#065F46'; ?>;font-weight:600">
                             <?php echo $res['quantity_available']; ?>
