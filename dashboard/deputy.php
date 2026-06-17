@@ -86,7 +86,10 @@ $recent_allocs = mysqli_query($conn, "SELECT ra.*, u.name as teacher_name, r.nam
                     <td><?php echo htmlspecialchars($doc['category']); ?></td>
                     <td><?php echo htmlspecialchars($doc['uploader']); ?></td>
                     <td><?php echo date('d M Y', strtotime($doc['upload_date'])); ?></td>
-                    <td><a href="/radts/modules/documents/download.php?id=<?php echo $doc['document_id']; ?>" class="btn btn-success btn-sm">Download</a></td>
+                    <td style="display:flex;gap:6px">
+                        <a href="/radts/modules/documents/download.php?id=<?php echo $doc['document_id']; ?>" class="btn btn-success btn-sm">Download</a>
+                        <a href="/radts/modules/documents/edit.php?id=<?php echo $doc['document_id']; ?>" class="btn btn-warning btn-sm">Edit</a>
+                    </td>
                 </tr>
                 <?php endwhile; ?>
                 <?php if ($total_docs == 0): ?>
@@ -112,20 +115,25 @@ $recent_allocs = mysqli_query($conn, "SELECT ra.*, u.name as teacher_name, r.nam
                     <th>Quantity</th>
                     <th>Date</th>
                     <th>Status</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 <?php while ($alloc = mysqli_fetch_assoc($recent_allocs)): ?>
+                    <?php $allocStatus = $alloc['status'] ?? ($alloc['STATUS'] ?? 'pending'); ?>
                 <tr>
                     <td><?php echo htmlspecialchars($alloc['resource_name']); ?></td>
                     <td><?php echo htmlspecialchars($alloc['teacher_name']); ?></td>
                     <td><?php echo $alloc['quantity']; ?></td>
                     <td><?php echo date('d M Y', strtotime($alloc['date_allocated'])); ?></td>
-                    <td><span class="badge badge-<?php echo $alloc['status']; ?>"><?php echo ucfirst($alloc['status']); ?></span></td>
+                    <td><span class="badge badge-<?php echo htmlspecialchars($allocStatus); ?>"><?php echo ucfirst(htmlspecialchars($allocStatus)); ?></span></td>
+                    <td>
+                        <a href="/radts/modules/resources/edit_allocation.php?id=<?php echo (int)$alloc['allocation_id']; ?>" class="btn btn-warning btn-sm">Edit</a>
+                    </td>
                 </tr>
                 <?php endwhile; ?>
                 <?php if ($total_pending == 0 && !mysqli_num_rows($recent_allocs)): ?>
-                <tr><td colspan="5" style="text-align:center;color:#6B7280;padding:20px">No allocations yet.</td></tr>
+                <tr><td colspan="6" style="text-align:center;color:#6B7280;padding:20px">No allocations yet.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

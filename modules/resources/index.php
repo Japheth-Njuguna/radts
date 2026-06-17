@@ -78,6 +78,7 @@ while ($row = mysqli_fetch_assoc($summary)) {
                     </td>
                     <td>
                         <a href="/radts/modules/resources/allocate.php?resource_id=<?php echo $res['resource_id']; ?>" class="btn btn-primary btn-sm">Allocate</a>
+                        <a href="/radts/modules/resources/edit.php?id=<?php echo $res['resource_id']; ?>" class="btn btn-warning btn-sm">Edit</a>
                     </td>
                 </tr>
                 <?php endwhile; ?>

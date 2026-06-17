@@ -99,6 +99,8 @@ $total     = mysqli_num_rows($documents);
                     <td style="display:flex;gap:6px">
                         <a href="/radts/modules/documents/download.php?id=<?php echo $doc['document_id']; ?>"
                            class="btn btn-success btn-sm">Download</a>
+                                <a href="/radts/modules/documents/edit.php?id=<?php echo $doc['document_id']; ?>"
+                                    class="btn btn-warning btn-sm">Edit</a>
                         <a href="/radts/modules/documents/delete.php?id=<?php echo $doc['document_id']; ?>"
                            class="btn btn-danger btn-sm"
                            onclick="return confirm('Delete this document permanently?')">Delete</a>
