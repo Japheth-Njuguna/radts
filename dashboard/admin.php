@@ -57,7 +57,7 @@ $users = mysqli_query($conn, "SELECT user_id, `NAME` AS name, email, role, creat
                 <tr>
                     <th>#</th>
                     <th>Name</th>
-                    <th>Email</th>
+                    <th>Login ID</th>
                     <th>Role</th>
                     <th>Date Added</th>
                     <th>Actions</th>

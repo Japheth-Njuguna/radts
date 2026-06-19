@@ -21,6 +21,10 @@ if ($id <= 0) {
 $success = '';
 $error = '';
 $allowedRoles = ['teacher', 'student_leader', 'deputy', 'admin'];
+$allowedStudentAdmissions = [
+    '1001', '1002', '1003', '1004', '1005', '1006', '1007', '1008',
+    '1009', '1010', '1011', '1012', '1013', '1014', '1015', '1016'
+];
 
 $load = mysqli_prepare($conn, 'SELECT user_id, `NAME` AS name, email, role FROM users WHERE user_id = ? LIMIT 1');
 mysqli_stmt_bind_param($load, 'i', $id);
@@ -42,14 +46,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($name === '' || $email === '') {
         $error = 'Please fill in all required fields.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Please enter a valid email address.';
     } elseif (!in_array($role, $allowedRoles, true)) {
         $error = 'Invalid role selected.';
+    } elseif (in_array($role, ['teacher', 'deputy', 'admin'], true) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Please enter a valid email address for staff accounts.';
     } elseif (in_array($role, ['teacher', 'deputy', 'admin'], true) && !preg_match('/@gmail\.com$/i', $email)) {
         $error = 'Teachers, deputies and admins must use a Gmail address format (example: jameskamau@gmail.com).';
-    } elseif ($role === 'student_leader' && !preg_match('/^s\.leader\.grade[0-9]{1,2}@stmarys\.ac\.ke$/i', $email)) {
-        $error = 'Student leader email must follow this format: s.leader.grade1@stmarys.ac.ke';
+    } elseif ($role === 'student_leader' && !in_array($email, $allowedStudentAdmissions, true)) {
+        $error = 'Student leader login ID must be one of the admission numbers 1001 to 1016.';
     } else {
         $emailCheck = mysqli_prepare($conn, 'SELECT user_id FROM users WHERE email = ? AND user_id <> ? LIMIT 1');
         mysqli_stmt_bind_param($emailCheck, 'si', $email, $id);
@@ -150,17 +154,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div class="form-group-block">
-                <label class="form-label">Email Address *</label>
+                <label class="form-label">Login ID *</label>
                 <input
-                    type="email"
+                    type="text"
                     name="email"
                     class="form-control"
                     value="<?php echo htmlspecialchars($_POST['email'] ?? $user['email']); ?>"
-                    placeholder="Teacher/Admin/Deputy: name@gmail.com | Student: s.leader.grade1@stmarys.ac.ke"
+                    placeholder="Teacher/Admin/Deputy: name@gmail.com | Student Leader: 1001-1016"
                     required
                 >
                 <small style="color:#6B7280;font-size:11px;margin-top:4px;display:block">
-                    Teacher/Deputy/Admin: use Gmail format. Student leader: use s.leader.gradeX@stmarys.ac.ke format.
+                    Teacher/Deputy/Admin: use Gmail format. Student leader: use admission number (1001-1016).
                 </small>
             </div>
 

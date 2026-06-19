@@ -12,15 +12,15 @@ $error = '';
 
 // Handle login form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = trim($_POST['email'] ?? '');
+    $loginId  = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    if (empty($email) || empty($password)) {
-        $error = "Please enter both email and password.";
+    if (empty($loginId) || empty($password)) {
+        $error = "Please enter both login ID and password.";
     } else {
-        // Find user by email
+        // Find user by login ID (staff email or student leader admission number)
         $stmt = mysqli_prepare($conn, "SELECT user_id, `NAME` AS name, email, `PASSWORD` AS password, role FROM users WHERE email = ?");
-        mysqli_stmt_bind_param($stmt, "s", $email);
+        mysqli_stmt_bind_param($stmt, "s", $loginId);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         $user   = mysqli_fetch_assoc($result);
@@ -70,12 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST" action="">
 
             <div class="form-group">
-                <label for="email">Email Address</label>
+                <label for="email">Email / Admission Number</label>
                 <input
-                    type="email"
+                    type="text"
                     id="email"
                     name="email"
-                    placeholder="e.g. admin@stmarys.ac.ke"
+                    placeholder="e.g. winniemuthoni@gmail.com or 1001"
                     value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>"
                     required
                 >
