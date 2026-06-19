@@ -171,5 +171,7 @@ if ($error === '' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
+<script src="/radts/assets/js/password-toggle.js"></script>
+
 </body>
 </html>
