@@ -2,7 +2,7 @@
 require_once 'includes/auth.php';
 require_once 'includes/db.php';
 
-function ensurePasswordResetSchema($conn) {
+function ensurePasswordResetSchema(mysqli $conn): void {
     mysqli_query($conn, "
         CREATE TABLE IF NOT EXISTS password_reset_requests (
             request_id INT AUTO_INCREMENT PRIMARY KEY,
