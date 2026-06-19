@@ -19,7 +19,22 @@
             button.type = 'button';
             button.className = 'password-toggle-btn';
             button.setAttribute('aria-label', 'Show password');
-            button.textContent = 'Show';
+            button.setAttribute('aria-pressed', 'false');
+
+            var icon = document.createElement('span');
+            icon.className = 'eye-icon';
+            icon.setAttribute('aria-hidden', 'true');
+            icon.innerHTML =
+                '<svg class="icon-show" viewBox="0 0 24 24" focusable="false" aria-hidden="true">' +
+                '<ellipse cx="12" cy="12" rx="9" ry="6"></ellipse>' +
+                '<circle cx="12" cy="12" r="2.2"></circle>' +
+                '</svg>' +
+                '<svg class="icon-hide" viewBox="0 0 24 24" focusable="false" aria-hidden="true">' +
+                '<ellipse cx="12" cy="12" rx="9" ry="6"></ellipse>' +
+                '<circle cx="12" cy="12" r="2.2"></circle>' +
+                '<path d="M4 20L20 4"></path>' +
+                '</svg>';
+            button.appendChild(icon);
 
             var buttonId = 'toggle-password-' + index;
             button.id = buttonId;
@@ -28,8 +43,16 @@
             button.addEventListener('click', function () {
                 var isPassword = input.type === 'password';
                 input.type = isPassword ? 'text' : 'password';
-                button.textContent = isPassword ? 'Hide' : 'Show';
-                button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+
+                if (isPassword) {
+                    button.classList.add('is-hidden');
+                    button.setAttribute('aria-label', 'Hide password');
+                    button.setAttribute('aria-pressed', 'true');
+                } else {
+                    button.classList.remove('is-hidden');
+                    button.setAttribute('aria-label', 'Show password');
+                    button.setAttribute('aria-pressed', 'false');
+                }
             });
 
             wrapper.appendChild(button);

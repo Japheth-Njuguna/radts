@@ -107,7 +107,7 @@ if ($error === '' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RADTS - Reset Password</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=20260619">
 </head>
 <body>
 
@@ -171,7 +171,7 @@ if ($error === '' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
-<script src="/radts/assets/js/password-toggle.js"></script>
+<script src="/radts/assets/js/password-toggle.js?v=20260619"></script>
 
 </body>
 </html>

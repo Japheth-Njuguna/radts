@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RADTS Dashboard</title>
-    <link rel="stylesheet" href="/radts/assets/css/style.css">
+    <link rel="stylesheet" href="/radts/assets/css/style.css?v=20260619">
 </head>
 <body>
 <?php
