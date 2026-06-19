@@ -75,7 +75,11 @@ $users = mysqli_query($conn, "SELECT user_id, `NAME` AS name, email, role, creat
                         </span>
                     </td>
                     <td><?php echo date('d M Y', strtotime($user['created_at'])); ?></td>
-                    <td>
+                          <td style="display:flex;gap:6px">
+                                <a href="/radts/modules/users/edit.php?id=<?php echo $user['user_id']; ?>"
+                                    class="btn btn-warning btn-sm">
+                                    Edit
+                                </a>
                         <a href="/radts/modules/users/delete.php?id=<?php echo $user['user_id']; ?>"
                            class="btn btn-danger btn-sm"
                            onclick="return confirm('Are you sure you want to delete this user?')">

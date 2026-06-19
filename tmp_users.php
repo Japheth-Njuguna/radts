@@ -1,0 +1,1 @@
+<?php require __DIR__ . "/includes/db.php"; $res = mysqli_query($conn, "SELECT user_id, `NAME` AS name, email, role FROM users WHERE role IN (""admin"",""deputy"") ORDER BY role, user_id"); while($row = mysqli_fetch_assoc($res)){ echo $row[""user_id""] . "|" . $row[""name""] . "|" . $row[""email""] . "|" . $row[""role""] . PHP_EOL; }
