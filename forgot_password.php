@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $userId = $user['user_id'] ?? null;
         $userRole = $user['role'] ?? '';
 
-        if ($userId !== null && $userRole === 'teacher') {
+        if ($userId !== null && in_array($userRole, ['teacher', 'deputy', 'admin'], true)) {
             $token = bin2hex(random_bytes(32));
             $tokenHash = hash('sha256', $token);
             $expiresAt = date('Y-m-d H:i:s', time() + (15 * 60));
@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <div class="info-msg" style="margin-top:0">
-            Password reset link is available for teacher accounts only.
+            Password reset link is available for teacher, deputy and admin accounts only.
         </div>
 
         <form method="POST" action="">

@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     required
                 >
                 <div class="form-helper">
-                    <a href="forgot_password.php">Forgot password? (Teachers only)</a>
+                    <a href="forgot_password.php">Forgot password? (Teacher/Deputy/Admin)</a>
                 </div>
             </div>
 

@@ -46,8 +46,8 @@ if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
 
     if (!$request) {
         $error = 'This reset link is invalid.';
-    } elseif (($request['user_role'] ?? '') !== 'teacher') {
-        $error = 'Password reset link is only available for teacher accounts.';
+    } elseif (!in_array(($request['user_role'] ?? ''), ['teacher', 'deputy', 'admin'], true)) {
+        $error = 'Password reset link is only available for teacher, deputy and admin accounts.';
     } elseif ($request['status'] !== 'pending' || $request['used_at'] !== null) {
         $error = 'This reset link has already been used.';
     } elseif ($request['expires_at'] === null || strtotime($request['expires_at']) < time()) {
