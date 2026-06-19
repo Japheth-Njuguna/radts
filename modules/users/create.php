@@ -20,12 +20,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $allowedRoles = ['teacher', 'student_leader', 'deputy', 'admin'];
 
+    if ($role === 'student_leader') {
+        $password = 'password';
+        $confirmPassword = 'password';
+    }
+
     if ($name === '' || $email === '' || $password === '' || $confirmPassword === '') {
         $error = 'Please fill in all required fields.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Please enter a valid email address.';
     } elseif (!in_array($role, $allowedRoles, true)) {
         $error = 'Invalid role selected.';
+    } elseif (in_array($role, ['teacher', 'deputy', 'admin'], true) && !preg_match('/@gmail\.com$/i', $email)) {
+        $error = 'Teachers, deputies and admins must use a Gmail address format (example: jameskamau@gmail.com).';
+    } elseif ($role === 'student_leader' && !preg_match('/^s\.leader\.grade[0-9]{1,2}@stmarys\.ac\.ke$/i', $email)) {
+        $error = 'Student leader email must follow this format: s.leader.grade1@stmarys.ac.ke';
     } elseif (strlen($password) < 8) {
         $error = 'Password must be at least 8 characters long.';
     } elseif ($password !== $confirmPassword) {
@@ -45,7 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mysqli_stmt_bind_param($insert, 'ssss', $name, $email, $passwordHash, $role);
 
             if (mysqli_stmt_execute($insert)) {
-                $success = 'User account created successfully.';
+                if ($role === 'student_leader') {
+                    $success = 'Student leader account created successfully. Default password is: password';
+                } else {
+                    $success = 'User account created successfully.';
+                }
                 $_POST = [];
             } else {
                 $error = 'Failed to create user account. Please try again.';
@@ -96,9 +109,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     name="email"
                     class="form-control"
                     value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>"
-                    placeholder="e.g. teacher@stmarys.ac.ke"
+                    placeholder="Teacher/Admin/Deputy: name@gmail.com | Student: s.leader.grade1@stmarys.ac.ke"
                     required
                 >
+                <small style="color:#6B7280;font-size:11px;margin-top:4px;display:block">
+                    Teacher/Deputy/Admin: use Gmail format. Student leader: use s.leader.gradeX@stmarys.ac.ke format.
+                </small>
             </div>
 
             <div class="form-group-block">
@@ -121,6 +137,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         minlength="8"
                         required
                     >
+                    <small style="color:#6B7280;font-size:11px;margin-top:4px;display:block">
+                        For student leader role, system automatically sets password to: password.
+                    </small>
                 </div>
                 <div class="form-group-block">
                     <label class="form-label">Confirm Password *</label>

@@ -32,10 +32,11 @@ if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
     $tokenHash = hash('sha256', $token);
     $stmt = mysqli_prepare(
         $conn,
-        "SELECT request_id, user_id, email, status, expires_at, used_at
-         FROM password_reset_requests
-         WHERE token_hash = ?
-         ORDER BY request_id DESC
+          "SELECT pr.request_id, pr.user_id, pr.email, pr.status, pr.expires_at, pr.used_at, u.role AS user_role
+            FROM password_reset_requests pr
+            JOIN users u ON pr.user_id = u.user_id
+            WHERE pr.token_hash = ?
+            ORDER BY pr.request_id DESC
          LIMIT 1"
     );
     mysqli_stmt_bind_param($stmt, 's', $tokenHash);
@@ -45,6 +46,8 @@ if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
 
     if (!$request) {
         $error = 'This reset link is invalid.';
+    } elseif (($request['user_role'] ?? '') !== 'teacher') {
+        $error = 'Password reset link is only available for teacher accounts.';
     } elseif ($request['status'] !== 'pending' || $request['used_at'] !== null) {
         $error = 'This reset link has already been used.';
     } elseif ($request['expires_at'] === null || strtotime($request['expires_at']) < time()) {

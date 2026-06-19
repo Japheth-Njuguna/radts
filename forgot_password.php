@@ -31,14 +31,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Please enter a valid email address.';
     } else {
-        $stmt = mysqli_prepare($conn, "SELECT user_id FROM users WHERE email = ? LIMIT 1");
+        $stmt = mysqli_prepare($conn, "SELECT user_id, role FROM users WHERE email = ? LIMIT 1");
         mysqli_stmt_bind_param($stmt, 's', $email);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         $user = mysqli_fetch_assoc($result);
         $userId = $user['user_id'] ?? null;
+        $userRole = $user['role'] ?? '';
 
-        if ($userId !== null) {
+        if ($userId !== null && $userRole === 'teacher') {
             $token = bin2hex(random_bytes(32));
             $tokenHash = hash('sha256', $token);
             $expiresAt = date('Y-m-d H:i:s', time() + (15 * 60));
@@ -101,6 +102,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if ($message !== ''): ?>
             <div class="info-msg"><?php echo htmlspecialchars($message); ?></div>
         <?php endif; ?>
+
+        <div class="info-msg" style="margin-top:0">
+            Password reset link is available for teacher accounts only.
+        </div>
 
         <form method="POST" action="">
             <div class="form-group">
