@@ -45,7 +45,7 @@ if ($teacher > 0) {
     $sql .= " AND ra.teacher_id = $teacher";
 }
 
-$sql .= " ORDER BY ra.date_allocated DESC";
+$sql .= " ORDER BY r.name ASC, ra.date_allocated DESC";
 
 $allocations = mysqli_query($conn, $sql);
 $total       = mysqli_num_rows($allocations);

@@ -89,11 +89,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <select name="class" class="form-control" required>
                         <option value="">-- Select Class --</option>
                         <?php
-                        $classes = ['Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9'];
+                        $classes = ['1a','1b','2a','2b','3a','3b','4a','4b','5a','5b','6a','6b','7a','7b','8a','8b'];
                         foreach ($classes as $c):
                         ?>
                         <option value="<?php echo $c; ?>" <?php echo (isset($_POST['class']) && $_POST['class']==$c)?'selected':''; ?>>
-                            <?php echo $c; ?>
+                            <?php echo 'Grade ' . strtoupper($c); ?>
                         </option>
                         <?php endforeach; ?>
                     </select>

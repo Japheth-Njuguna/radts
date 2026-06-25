@@ -92,7 +92,7 @@ if (isset($_GET['updated']) && $_GET['updated'] === '1') {
 }
 
 $teachers = mysqli_query($conn, "SELECT user_id, name FROM users WHERE role='teacher' ORDER BY name");
-$classes = ['Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9'];
+$classes = ['1a','1b','2a','2b','3a','3b','4a','4b','5a','5b','6a','6b','7a','7b','8a','8b'];
 $subjects = ['Mathematics','English','Kiswahili','Science','Social Studies','CRE','IRE','Physical Education','Creative Arts','Home Science','Agriculture','Music'];
 $back_link = '/radts/modules/attendance/report.php';
 if ($can_edit_own && !$can_manage_all) {
@@ -142,7 +142,7 @@ if (isset($_GET['back']) && is_string($_GET['back']) && strpos($_GET['back'], '/
                         <option value="">-- Select Class --</option>
                         <?php foreach ($classes as $c): ?>
                         <option value="<?php echo $c; ?>" <?php echo ($record['class'] === $c) ? 'selected' : ''; ?>>
-                            <?php echo $c; ?>
+                            <?php echo 'Grade ' . strtoupper($c); ?>
                         </option>
                         <?php endforeach; ?>
                     </select>

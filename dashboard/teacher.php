@@ -45,6 +45,17 @@ $my_resources = mysqli_query($conn, "SELECT ra.*, r.name as resource_name FROM r
     </div>
 </div>
 
+<!-- Quick Access Modules -->
+<div class="card">
+    <div class="card-header">
+        <h2>Teacher Modules</h2>
+    </div>
+    <div class="card-body">
+        <a href="/radts/modules/attendance/teacher_attendance.php" class="btn btn-primary">View Attendance</a>
+        <a href="/radts/modules/resources/teachers_resource.php" class="btn btn-success" style="margin-left:8px">View Resources Allocated</a>
+    </div>
+</div>
+
 <!-- Pending Resources to Confirm -->
 <?php if ($pending_resources > 0): ?>
 <div class="card">
@@ -86,7 +97,7 @@ $my_resources = mysqli_query($conn, "SELECT ra.*, r.name as resource_name FROM r
 <div class="card">
     <div class="card-header">
         <h2>My Recent Attendance</h2>
-        <a href="/radts/modules/attendance/my_attendance.php" class="btn btn-primary btn-sm">View All</a>
+        <a href="/radts/modules/attendance/teacher_attendance.php" class="btn btn-primary btn-sm">View All</a>
     </div>
     <div class="card-body" style="padding:0">
         <table>
