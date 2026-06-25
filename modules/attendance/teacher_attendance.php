@@ -15,8 +15,8 @@ $present = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM
 $absent  = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM attendance WHERE teacher_id=$user_id AND status='absent'"))['total'];
 $total   = $present + $absent;
 
-// All my attendance records
-$records = mysqli_query($conn, "SELECT a.*, u.name as recorder FROM attendance a JOIN users u ON a.recorded_by = u.user_id WHERE a.teacher_id=$user_id ORDER BY a.date DESC");
+// All my attendance records (aliased to stable keys for display)
+$records = mysqli_query($conn, "SELECT a.date AS lesson_date, a.subject AS lesson_subject, a.class AS lesson_class, a.status AS lesson_status, u.name as recorder FROM attendance a JOIN users u ON a.recorded_by = u.user_id WHERE a.teacher_id=$user_id ORDER BY a.date DESC");
 ?>
 
 <?php require_once '../../includes/header.php'; ?>
@@ -66,7 +66,7 @@ $records = mysqli_query($conn, "SELECT a.*, u.name as recorder FROM attendance a
                 </tr>
             </thead>
             <tbody>
-                <?php if ($total === 0): ?>
+                <?php if ($total === 0 || $records === false || mysqli_num_rows($records) === 0): ?>
                 <tr>
                     <td colspan="6" style="text-align:center;color:#6B7280;padding:30px">
                         No attendance records found yet.
@@ -74,13 +74,21 @@ $records = mysqli_query($conn, "SELECT a.*, u.name as recorder FROM attendance a
                 </tr>
                 <?php else: ?>
                 <?php $i = 1; while ($rec = mysqli_fetch_assoc($records)): ?>
+                <?php
+                    $lessonDate = $rec['lesson_date'] ?? $rec['date'] ?? $rec['Date'] ?? '';
+                    $lessonSubject = $rec['lesson_subject'] ?? $rec['subject'] ?? $rec['Subject'] ?? '-';
+                    $lessonClass = $rec['lesson_class'] ?? $rec['class'] ?? $rec['Class'] ?? '-';
+                    $lessonStatus = strtolower((string)($rec['lesson_status'] ?? $rec['status'] ?? $rec['STATUS'] ?? 'pending'));
+                    $dateTs = $lessonDate !== '' ? strtotime($lessonDate) : false;
+                    $dateLabel = $dateTs ? date('d M Y', $dateTs) : '-';
+                ?>
                 <tr>
                     <td><?php echo $i++; ?></td>
-                    <td><?php echo date('d M Y', strtotime($rec['date'])); ?></td>
-                    <td><?php echo htmlspecialchars($rec['subject']); ?></td>
-                    <td><?php echo htmlspecialchars($rec['class']); ?></td>
-                    <td><span class="badge badge-<?php echo $rec['status']; ?>"><?php echo ucfirst($rec['status']); ?></span></td>
-                    <td><?php echo htmlspecialchars($rec['recorder']); ?></td>
+                    <td><?php echo $dateLabel; ?></td>
+                    <td><?php echo htmlspecialchars((string)$lessonSubject); ?></td>
+                    <td><?php echo htmlspecialchars((string)$lessonClass); ?></td>
+                    <td><span class="badge badge-<?php echo htmlspecialchars($lessonStatus); ?>"><?php echo ucfirst(htmlspecialchars($lessonStatus)); ?></span></td>
+                    <td><?php echo htmlspecialchars((string)($rec['recorder'] ?? '-')); ?></td>
                 </tr>
                 <?php endwhile; ?>
                 <?php endif; ?>
