@@ -25,8 +25,19 @@ $my_resources = mysqli_query($conn, "SELECT ra.*, r.name as resource_name FROM r
 <?php require_once '../includes/header.php'; ?>
 
 <div class="page-header">
-    <h1>Teacher Dashboard</h1>
-    <p>Welcome back, <?php echo htmlspecialchars($_SESSION['name']); ?> — <?php echo date('l, d F Y'); ?></p>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+        <div>
+            <h1>Teacher Dashboard</h1>
+            <p>Welcome back, <?php echo htmlspecialchars($_SESSION['name']); ?> — <?php echo date('l, d F Y'); ?></p>
+        </div>
+        <a href="/radts/index.php"
+           class="btn btn-primary btn-sm"
+           title="Go Back"
+           aria-label="Go Back"
+           onclick="if (window.history.length > 1) { window.history.back(); return false; }">
+           &#8592;
+        </a>
+    </div>
 </div>
 
 <!-- Stat Cards -->
