@@ -11,6 +11,32 @@ if (!hasRole('student_leader')) {
 $success = '';
 $error   = '';
 
+$admissionToClass = [
+    '1001' => '1a',
+    '1002' => '1b',
+    '1003' => '2a',
+    '1004' => '2b',
+    '1005' => '3a',
+    '1006' => '3b',
+    '1007' => '4a',
+    '1008' => '4b',
+    '1009' => '5a',
+    '1010' => '5b',
+    '1011' => '6a',
+    '1012' => '6b',
+    '1013' => '7a',
+    '1014' => '7b',
+    '1015' => '8a',
+    '1016' => '8b',
+];
+
+$admissionNo = isset($_SESSION['email']) ? trim((string)$_SESSION['email']) : '';
+$studentClass = $admissionToClass[$admissionNo] ?? '';
+
+if ($studentClass === '') {
+    $error = 'Your account is not mapped to a class. Please contact admin.';
+}
+
 // Get all teachers
 $teachers = mysqli_query($conn, "SELECT user_id, name FROM users WHERE role='teacher' ORDER BY name");
 
@@ -18,12 +44,14 @@ $teachers = mysqli_query($conn, "SELECT user_id, name FROM users WHERE role='tea
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $date       = $_POST['date'];
     $subject    = trim($_POST['subject']);
-    $class      = trim($_POST['class']);
+    $class      = $studentClass;
     $teacher_id = isset($_POST['teacher_id']) ? (int)$_POST['teacher_id'] : 0;
     $status     = isset($_POST['status']) ? trim($_POST['status']) : '';
     $recorded_by = $_SESSION['user_id'];
 
-    if (empty($date) || empty($subject) || empty($class) || $teacher_id <= 0 || !in_array($status, ['present', 'absent'], true)) {
+    if ($studentClass === '') {
+        $error = 'Your account is not mapped to a class. Please contact admin.';
+    } elseif (empty($date) || empty($subject) || empty($class) || $teacher_id <= 0 || !in_array($status, ['present', 'absent'], true)) {
         $error = "Please fill in all fields.";
     } else {
         // Prevent duplicate entry for the same class + subject + date lesson.
@@ -85,18 +113,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         required>
                 </div>
                 <div class="form-group-block">
-                    <label class="form-label">Class *</label>
-                    <select name="class" class="form-control" required>
-                        <option value="">-- Select Class --</option>
-                        <?php
-                        $classes = ['1a','1b','2a','2b','3a','3b','4a','4b','5a','5b','6a','6b','7a','7b','8a','8b'];
-                        foreach ($classes as $c):
-                        ?>
-                        <option value="<?php echo $c; ?>" <?php echo (isset($_POST['class']) && $_POST['class']==$c)?'selected':''; ?>>
-                            <?php echo 'Grade ' . strtoupper($c); ?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <label class="form-label">Class</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        value="<?php echo $studentClass !== '' ? 'Grade ' . strtoupper($studentClass) : 'Not assigned'; ?>"
+                        readonly
+                    >
                 </div>
             </div>
 
