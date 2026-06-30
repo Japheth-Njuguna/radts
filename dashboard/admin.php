@@ -8,6 +8,9 @@ if (!hasRole('admin')) {
     exit();
 }
 
+$success_msg = trim($_GET['success'] ?? '');
+$error_msg = trim($_GET['error'] ?? '');
+
 // Count all users
 $total_users = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM users"))['total'];
 $total_teachers = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM users WHERE role='teacher'"))['total'];
@@ -24,6 +27,14 @@ $users = mysqli_query($conn, "SELECT user_id, `NAME` AS name, email, role, creat
     <h1>System Administrator Dashboard</h1>
     <p>Welcome back, <?php echo htmlspecialchars($_SESSION['name']); ?></p>
 </div>
+
+<?php if ($success_msg !== ''): ?>
+<div class="success-msg" style="margin-bottom:16px">✅ <?php echo htmlspecialchars($success_msg); ?></div>
+<?php endif; ?>
+
+<?php if ($error_msg !== ''): ?>
+<div class="error-msg" style="margin-bottom:16px">⚠ <?php echo htmlspecialchars($error_msg); ?></div>
+<?php endif; ?>
 
 <!-- Stat Cards -->
 <div class="stats-grid">

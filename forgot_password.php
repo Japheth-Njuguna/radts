@@ -1,9 +1,19 @@
 <?php
 require_once 'includes/auth.php';
 require_once 'includes/db.php';
+require_once __DIR__ . '/vendor/autoload.php';
+
+if (file_exists(__DIR__ . '/includes/mail_config.php')) {
+    require_once __DIR__ . '/includes/mail_config.php';
+}
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 $message = '';
 $error = '';
+$debugResetLink = '';
+$debugMailIssue = '';
 
 function ensurePasswordResetSchema(mysqli $conn): void {
     mysqli_query($conn, "
@@ -24,6 +34,93 @@ function ensurePasswordResetSchema(mysqli $conn): void {
 }
 
 ensurePasswordResetSchema($conn);
+
+function isLocalRequest(): bool {
+    $host = strtolower($_SERVER['HTTP_HOST'] ?? '');
+    return str_starts_with($host, 'localhost')
+        || str_starts_with($host, '127.0.0.1')
+        || str_starts_with($host, '[::1]');
+}
+
+function envValue(string $key, string $default = ''): string {
+    $value = getenv($key);
+    if ($value !== false && $value !== '') {
+        return $value;
+    }
+
+    if (isset($_ENV[$key]) && $_ENV[$key] !== '') {
+        return (string)$_ENV[$key];
+    }
+
+    if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') {
+        return (string)$_SERVER[$key];
+    }
+
+    return $default;
+}
+
+function smtpValue(string $key, string $default = ''): string {
+    if (defined($key) && constant($key) !== '') {
+        return (string)constant($key);
+    }
+
+    return envValue($key, $default);
+}
+
+function sendResetEmail(string $recipientEmail, string $resetLink, string &$failureReason = ''): bool {
+    $smtpHost = smtpValue('RADTS_SMTP_HOST', 'smtp.gmail.com');
+    $smtpPort = (int)smtpValue('RADTS_SMTP_PORT', '587');
+    $smtpUser = smtpValue('RADTS_SMTP_USER');
+    $smtpPass = smtpValue('RADTS_SMTP_PASS');
+    $smtpSecure = strtolower(smtpValue('RADTS_SMTP_SECURE', 'tls'));
+    $fromEmail = smtpValue('RADTS_SMTP_FROM', $smtpUser !== '' ? $smtpUser : 'no-reply@stmarys.ac.ke');
+    $fromName = smtpValue('RADTS_SMTP_FROM_NAME', 'RADTS');
+
+    if ($smtpUser === '' || $smtpPass === '') {
+        $failureReason = 'SMTP credentials are missing. Set RADTS_SMTP_USER and RADTS_SMTP_PASS in includes/mail_config.php.';
+        return false;
+    }
+
+    $mail = new PHPMailer(true);
+
+    try {
+        $mail->isSMTP();
+        $mail->Host = $smtpHost;
+        $mail->SMTPAuth = true;
+        $mail->Username = $smtpUser;
+        $mail->Password = $smtpPass;
+        $mail->Port = $smtpPort;
+        $mail->CharSet = 'UTF-8';
+
+        if ($smtpSecure === 'ssl') {
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        } else {
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        }
+
+        $mail->setFrom($fromEmail, $fromName);
+        $mail->addAddress($recipientEmail);
+        $mail->isHTML(true);
+        $mail->Subject = 'RADTS Password Reset';
+        $safeResetLink = htmlspecialchars($resetLink, ENT_QUOTES, 'UTF-8');
+        $mail->Body = '<p>Hello,</p>'
+            . '<p>A password reset was requested for your RADTS account.</p>'
+            . '<p><a href="' . $safeResetLink . '"><strong>Reset Password</strong></a></p>'
+            . '<p>This link expires in 15 minutes and can be used once.</p>'
+            . '<p>If you did not request this reset, you can ignore this email.</p>';
+        $mail->AltBody = "Hello,\n\n"
+            . "A password reset was requested for your RADTS account.\n\n"
+            . "Reset Password: " . $resetLink . "\n\n"
+            . "This link expires in 15 minutes and can be used once.\n\n"
+            . "If you did not request this reset, you can ignore this email.\n";
+
+        return $mail->send();
+    } catch (Exception $e) {
+        $failureReason = $mail->ErrorInfo !== '' ? $mail->ErrorInfo : $e->getMessage();
+        error_log('RADTS SMTP mail failed: ' . $failureReason);
+        return false;
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
@@ -55,19 +152,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
             $resetLink = $scheme . '://' . $host . '/radts/reset_password.php?token=' . urlencode($token);
 
-            $subject = 'RADTS Password Reset';
-            $body = "Hello,\n\n" .
-                "A password reset was requested for your RADTS account.\n\n" .
-                "Use the link below to set a new password:\n" . $resetLink . "\n\n" .
-                "This link expires in 15 minutes and can be used once.\n\n" .
-                "If you did not request this reset, you can ignore this email.\n";
-            $headers = "From: no-reply@stmarys.ac.ke\r\n" .
-                "Reply-To: no-reply@stmarys.ac.ke\r\n" .
-                "Content-Type: text/plain; charset=UTF-8\r\n";
-
-            $mailSent = @mail($email, $subject, $body, $headers);
+            $mailFailureReason = '';
+            $mailSent = sendResetEmail($email, $resetLink, $mailFailureReason);
             if (!$mailSent) {
                 error_log('RADTS reset mail failed. Link for testing: ' . $resetLink);
+                // Local XAMPP setups often do not have SMTP configured.
+                // Show a temporary link only on local requests to unblock testing.
+                if (isLocalRequest()) {
+                    $debugResetLink = $resetLink;
+                    $debugMailIssue = $mailFailureReason;
+                }
             }
         }
 
@@ -101,6 +195,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <?php if ($message !== ''): ?>
             <div class="info-msg"><?php echo htmlspecialchars($message); ?></div>
+        <?php endif; ?>
+
+        <?php if ($debugResetLink !== ''): ?>
+            <div class="info-msg" style="margin-top:0">
+                Email delivery is not configured on this local server. Use this temporary reset link:<br>
+                <a href="<?php echo htmlspecialchars($debugResetLink); ?>"><?php echo htmlspecialchars($debugResetLink); ?></a>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($debugMailIssue !== '' && isLocalRequest()): ?>
+            <div class="error-msg" style="margin-top:0">
+                SMTP issue: <?php echo htmlspecialchars($debugMailIssue); ?>
+            </div>
         <?php endif; ?>
 
         <div class="info-msg" style="margin-top:0">
