@@ -1,11 +1,8 @@
 <?php
-// Copy this file to includes/mail_config.php and set your SMTP credentials.
-// For Gmail, use an App Password (not your normal Gmail password).
-
-define('RADTS_SMTP_HOST', 'smtp.gmail.com');
-define('RADTS_SMTP_PORT', '587');
-define('RADTS_SMTP_SECURE', 'tls');
-define('RADTS_SMTP_USER', 'japheth.njuguna07@gmail.com');
-define('RADTS_SMTP_PASS', 'PASTE_GMAIL_APP_PASSWORD_HERE');
-define('RADTS_SMTP_FROM', 'japheth.njuguna07@gmail.com');
-define('RADTS_SMTP_FROM_NAME', 'RADTS');
+// Legacy file kept for backward compatibility notes.
+// Recommended setup:
+// 1) Copy .env.example to .env in project root.
+// 2) Fill RADTS_SMTP_* values in .env.
+// 3) Do not commit .env.
+//
+// includes/mail_config.php now loads values from environment variables.

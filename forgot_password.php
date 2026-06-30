@@ -77,7 +77,7 @@ function sendResetEmail(string $recipientEmail, string $resetLink, string &$fail
     $fromName = smtpValue('RADTS_SMTP_FROM_NAME', 'RADTS');
 
     if ($smtpUser === '' || $smtpPass === '') {
-        $failureReason = 'SMTP credentials are missing. Set RADTS_SMTP_USER and RADTS_SMTP_PASS in includes/mail_config.php.';
+        $failureReason = 'SMTP credentials are missing. Set RADTS_SMTP_USER and RADTS_SMTP_PASS in your environment (.env file).';
         return false;
     }
 
